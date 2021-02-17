@@ -6,6 +6,9 @@ level = {}
 bullets = {}
 camx = 0
 camy = 0
+shotspeed = 3
+gravity = 9.81
+fps = 30
 function _init()
     cls()
     ship.x = 8*1
@@ -20,7 +23,7 @@ function _init()
     level.starty = 5
     level.endx = 23
     level.endy = 24
-    level.gravity = 9.81
+    level.gravity = gravity
     level.w = level.endx - level.startx + 1
     level.h = level.endy - level.starty + 1
 end
@@ -35,24 +38,25 @@ end
 function _update()
     --current controls only for debug
     if (btnp(0)) then
-        movex(-4,ship)
+        movex(ship,-4)
     end
     if (btnp(1)) then
-        movex(4,ship)
+        movex(ship,4)
     end
     if (btnp(2)) then
-        movey(-4,ship)
+        movey(ship,-4)
     end
     if (btnp(3)) then
-        movey(4,ship)
+        movey(ship,4)
     end
     update_camera()
     if (btnp(4)) then
         spawn_bullet(ship)
     end
+    update_bullets()
 end
 --distance in pixels, slow but accurate (should be fine with so few moving objects)
-function movex(distance, o)
+function movex(o, distance)
     while (distance <= -1 or distance >= 1) and o.crashed == 0 do
         if distance >= 1 then
             distance -= 1
@@ -68,7 +72,7 @@ function movex(distance, o)
     end
 end
 --same as movex
-function movey(distance, o)
+function movey(o, distance)
     --while the object hasn't crashed into a wall, check for every pixel of movement
     while (distance <= -1 or distance >= 1) and o.crashed == 0 do
         if distance >= 1 then
@@ -110,9 +114,11 @@ end
 function iswallcollision(o)
     return (fget(mget(((o.x)/8)+level.startx,((o.y)/8)+level.starty), 0) or fget(mget(((o.x+o.w-1)/8)+level.startx,(o.y)/8)+level.starty, 0) or fget(mget(((o.x)/8)+level.startx,((o.y+o.h-1)/8)+level.starty), 0) or fget(mget(((o.x+o.w-1)/8)+level.startx,((o.y+o.h-1)/8)+level.starty), 0))
 end
-function update_speed(o,x,y)
-    o.sx = o.sx + (x/30) --at 30fps
-    o.sy = o.sy + (y/30) --at 30fps
+function update_speed_move(o,x,y)
+    o.sx = o.sx + (x)
+    o.sy = o.sy + (y)
+    movex(o,o.sx/fps)
+    movey(o,o.sy/fps)
 end
 --draw sprite correctly, o.x and o.y are position (in pixels) on the map
 --draws relative to the camera position
@@ -133,12 +139,19 @@ function spawn_bullet(s)
     b.s = 1
     b.x = s.x + (s.w/2) - (b.w/2)
     b.y = s.y + (s.h/2)
+    b.sx = shotspeed
+    b.sy = 0
     b.crashed = 0
     add(bullets,b)
     return b
 end
 function update_bullets()
-    foreach(bullets,movey())
+    for b in all (bullets) do
+        update_speed_move(b, 0, gravity)
+        if b.crashed == 1 then
+            del(bullets,b)
+        end
+    end
 end
 
 __gfx__
