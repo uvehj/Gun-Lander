@@ -17,19 +17,18 @@ camx = 0
 camy = 0
 function _init()
     cls()
-    ship.x = 8*1
-    ship.y = 8*1
     ship.h = 8
     ship.w = 8
     ship.s = 0
     ship.sx = 0
     ship.sy = 0
     ship.crashed = 0
-    load_level(1)
+    load_level(1,false)
     init_background()
 end
 --build_level should only be called from load_level()
-function build_level(lvlnum,startx,starty,endx,endy,lgravity,messages)
+function build_level(lvlnum,startx,starty,endx,endy,lgravity,shipstart,messages)
+    --init level parameters
     level.number = lvlnum
     level.startx = startx
     level.starty = starty
@@ -39,8 +38,16 @@ function build_level(lvlnum,startx,starty,endx,endy,lgravity,messages)
     level.messages = messages
     level.w = level.endx - level.startx + 1
     level.h = level.endy - level.starty + 1
+    level.fail = 0
+    --init ship
+    ship.crashed = 0
+    ship.x = 8*shipstart[1]
+    ship.y = 8*shipstart[2]
+    ship.sx = 0
+    ship.sy = 0
 end
 function init_background()
+    background = {}
     local i = 0
     local tile = {}
     local sprite = 0
@@ -116,6 +123,20 @@ function draw_title()
     print("a game by uvehj",2,116,0)
     print("github.com/uvehj/gun-lander",2,122,0)
 end
+function draw_restart()
+    rectfill(22,60,107,78,7)
+    rect(22,60,107,78,8)
+    if level.fail == 2 then
+        print("don't hit friendlies!",24,62,8)
+    else
+        print("you crashed!",42,62,8)
+    end
+    print("press \151 to restart",28,72,8)
+end
+function draw_header()
+    rectfill(0,0,8*16,8,1)
+    print("gun lander",2,2,7)
+end
 function _draw()
     cls()
     draw_background()
@@ -123,21 +144,36 @@ function _draw()
         foreach(bullets, draw_object)
         draw_map()
         draw_object(ship)
-        rectfill(0,0,8*16,8,1)
-        print("gun lander",2,2,7)
+        if level.fail != 0 then
+            draw_restart()
+        end
+        draw_header()
     else
         draw_title()
     end
 end
 function _update()
     if level.number != 0 then
-        if debug == true then
-            update_ship_debug()
-        else
-            update_ship()
-        end
+        if ship.crashed == 0 then
+            if debug == true then
+                update_ship_debug()
+            else
+                update_ship()
+            end
         update_camera()
         update_bullets()
+        end
+        check_end()
+    end
+end
+function check_end()
+    --wip for now, a crash is a fail
+    if ship.crashed != 0 or level.fail != 0 then
+        ship.crashed = 1
+        level.fail = max(level.fail, 1)
+        if (btnp(5)) then
+            load_level(level.number,true)
+        end
     end
 end
 function update_ship_debug()
@@ -162,8 +198,7 @@ function update_ship()
     local y = level.gravity
     if (btnp(0)) then
         x = -30
-    end
-    if (btnp(1)) then
+    elseif (btnp(1)) then
         x = 30
     end
     if (btnp(4)) then
@@ -184,7 +219,7 @@ function movex(o, distance)
             distance += 1
             o.x -=1
         end
-        if is_wall_collision(o) then
+        if is_wall_collision(o) != 0 then
             o.crashed = 1
         end
     end
@@ -201,9 +236,7 @@ function movey(o, distance)
             distance += 1
             o.y -=1
         end
-        if is_wall_collision(o) then
-            o.crashed = 1
-        end
+        o.crashed = is_wall_collision(o)
     end
 end
 function update_camera()
@@ -228,29 +261,28 @@ function update_camera()
         camy = 0
     end
 end
---big ol if statement to check the four edges of an object
 function is_wall_collision(o)
     --top left, top right, bottom left, bottom right 
     local contact_points = {{((o.x)/8)+level.startx,((o.y)/8)+level.starty},{((o.x+o.w-1)/8)+level.startx,(o.y/8)+level.starty},{((o.x)/8)+level.startx,((o.y+o.h-1)/8)+level.starty},{((o.x+o.w-1)/8)+level.startx,((o.y+o.h-1)/8)+level.starty}}
     --enemy buildings
     for pos in all(contact_points) do
         if fget(mget(pos[1],pos[2]),2) then
-            return true
+            return 3
         end
     end
     --walls
     for pos in all(contact_points) do
         if fget(mget(pos[1],pos[2]),0) then
-            return true
+            return 1
         end
     end
     --friendly buildings
     for pos in all(contact_points) do
         if fget(mget(pos[1],pos[2]),1) then
-            return true
+            return 2
         end
     end
-    return false
+    return 0
 end
 function update_speed_move(o,x,y)
     if x > 0 or x < 0 then
@@ -290,18 +322,25 @@ end
 function update_bullets()
     for b in all (bullets) do
         update_speed_move(b, 0, gravity)
-        if b.crashed == 1 then
+        if b.crashed != 0 then
+            if b.crashed == 2 then
+                level.fail = 2
+            end
             del(bullets,b)
         end
     end
 end
 --level info--
---build_level(lvlnum,startx,starty,endx,endy,lgravity,messages)
-function load_level(l)
+--build_level(lvlnum,startx,starty,endx,endy,lgravity,shipstart,restart,messages)
+--l is level number, r is level restart (tru of false)
+function load_level(l,restart)
+    if restart == false then
+        init_background()
+    end
     if l == 0 then
-        build_level(l,0,0,15,14,gravity,{{"houston, we have a gun",2,8.2}})
+        build_level(l,0,0,15,14,gravity,{0,0},{{"houston, we have a gun",2,8.2}})
     elseif l == 1 then
-        build_level(l,1,5,24,27,gravity,{{"i'm a friendly",1,1},{"message",1,2},{"gonna explain",11,10},{"something, idk",11,11}})
+        build_level(l,1,5,24,27,gravity,{1,1},{{"i'm a friendly",1,1},{"message",1,2},{"gonna explain",11,10},{"something, idk",11,11}})
     end
 end
 
@@ -384,8 +423,8 @@ __map__
 0003000000000000000000000000000000000000000000000300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 0003000000000000000000000000000000000000000000000300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 0003000000000000000000000000000000000000000000000300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-0003000b0b000000000000000000000000000000000000000300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-0003000404000000000000000000000000000000000000000300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+0003000000000000000000000000000000000000000000000300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+0003000000000000000000000000000000000000000000000300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 0003000000000000000000000000000000000000000000000300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 0003000000000000000000000000000000000000000000000300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 0003000000000000000000000000000000000000000000000300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
