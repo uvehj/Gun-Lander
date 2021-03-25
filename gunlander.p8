@@ -2,7 +2,7 @@ pico-8 cartridge // http://www.pico-8.com
 version 29
 __lua__
 --debug/config variables
-debug = true
+debug = false
 shotspeed = 3
 gravity = 4
 fps = 30
@@ -27,17 +27,24 @@ function _init()
     init_background()
 end
 --build_level should only be called from load_level()
-function build_level(lvlnum,startx,starty,endx,endy,lgravity,shipstart,messages)
+function build_level(lvlnum,startx,starty,endx,endy,lgravity,shipstart,ammo,messages)
     --init level parameters
     level.number = lvlnum
     level.startx = startx
     level.starty = starty
     level.endx = endx
     level.endy = endy
-    level.gravity = lgravity
+    if lgravity == 0 then
+        level.gravity = gravity/2
+    elseif lgravity == 2 then
+        level.gravity = gravity*1.5
+    else
+        level.gravity = gravity
+    end
     level.messages = messages
     level.w = level.endx - level.startx + 1
     level.h = level.endy - level.starty + 1
+    level.ammo = {ammo[1],ammo[2],ammo[2]}
     level.fail = 0
     --init ship
     ship.crashed = 0
@@ -62,7 +69,10 @@ function create_enemy_list()
         x += 1
     end
 end
-function restore_enemies()
+function restore_level()
+    bullets = {}
+    level.ammo[3] = level.ammo[2]
+    level.numenemy = #level.enemylist
     for tile in all(level.enemylist) do
         mset(tile[1],tile[2],tile[3])
     end
@@ -159,9 +169,20 @@ function draw_header()
     print("lvl",2,2,7)
     print(level.number,14,2,7)
     if #level.enemylist > 0 then
-        print(level.numenemy,30,2,7)
-        print("\138",30+(#tostr(level.numenemy)*4),2,7)
-        print("\134",70,2,7)
+        print(level.numenemy,43,2,7)
+        print("\138",43+(#tostr(level.numenemy)*4),2,7)
+        
+    end
+    if level.ammo[1] == true then
+        print(level.ammo[3],86,2,7)
+        print("\134",86+(#tostr(level.ammo[3])*4),2,7)
+    end
+    spr(8,122,1)
+    if level.gravity >= gravity then
+        spr(8,122,3)
+        if level.gravity > gravity then
+        spr(8,122,5)
+        end
     end
 end
 function _draw()
@@ -199,7 +220,7 @@ function check_end()
         ship.crashed = 1
         level.fail = max(level.fail, 1)
         if (btnp(5)) then
-            restore_enemies()
+            restore_level()
             load_level(level.number,true)
         end
     end
@@ -218,7 +239,10 @@ function update_ship_debug()
         movey(ship,4)
     end
     if (btnp(4)) then
-        spawn_bullet(ship)
+        if (level.ammo[1] and level.ammo[3] > 0) or level.ammo[1] == false then
+            level.ammo[3] -= 1
+            spawn_bullet(ship)
+        end
     end
 end
 function update_ship()
@@ -230,8 +254,11 @@ function update_ship()
         x = 30
     end
     if (btnp(4)) then
-        y = -80
-        spawn_bullet(ship)
+        if (level.ammo[1] and level.ammo[3] > 0) or level.ammo[1] == false then
+            level.ammo[3] -= 1
+            y = -80
+            spawn_bullet(ship)
+        end
     end
     update_speed_move(ship, x, y)
 
@@ -365,13 +392,13 @@ function update_bullets()
     end
 end
 --level info--
---build_level(lvlnum,startx,starty,endx,endy,lgravity,shipstart,restart,messages)
+--build_level(lvlnum,startx,starty,endx,endy,lgravity,shipstart{x,y},ammo{is limited,number},restart,messages)
 --l is level number, r is level restart (true of false)
 function load_level(l,restart)
     if l == 0 then
-        build_level(l,0,0,15,14,gravity,{0,0},{{"houston, we have a gun",2,8.2}})
+        build_level(l,0,0,15,14,1,{0,0},{false,0},{{"houston, we have a gun",2,8.2}})
     elseif l == 1 then
-        build_level(l,1,5,24,27,gravity,{2,6},{{"shoot!shoot!shoot!",1,6}})
+        build_level(l,1,5,24,27,1,{2,6},{true,16},{{"shoot!shoot!shoot!",1,6}})
     end
     if restart == false then
         init_background()
@@ -380,13 +407,13 @@ function load_level(l,restart)
 end
 
 __gfx__
-0cccc00008800000c000000c777777778888888806000060877777777777777800000000cccccccc00011000000000a990099009000000000000000000000000
-cc77cc00877800000c0000c0777887777777777705606656888777777777787808000880c66c66c601111110000a999999999999000000000000000000000000
-cccccc00877800000cc00cc07777887778777777655655508778777777778778008088006c66c66c11cccc11a999999999999799000000000000000000000000
-00110000088000000cccccc07777777778877777550550508777767777777778000880007c77c77ccccccccc9999999999999979000000000000000000000000
-0cccc00000000000ccc77ccc77777777787778775555550587777777777777780088800077877777ccccc77c9797999999979999000000000000000000000000
-c0660c0000000000c0cccc0c78877777777778875505055587777877788877780080880077877787cc77c77c9979977999777999000000000000000000000000
-c0660c0000000000c001100c77777877777777770555555587788777777787780800000077787777cc77cccc9797977999777999000000000000000000000000
+0cccc00008800000c000000c777777778888888806000060877777777777777870007000cccccccc00011000000000a990099009000000000000000000000000
+cc77cc00877800000c0000c0777887777777777705606656888777777777787807070000c66c66c601111110000a999999999999000000000000000000000000
+cccccc00877800000cc00cc07777887778777777655655508778777777778778007000006c66c66c11cccc11a999999999999799000000000000000000000000
+00110000088000000cccccc07777777778877777550550508777767777777778000000007c77c77ccccccccc9999999999999979000000000000000000000000
+0cccc00000000000ccc77ccc77777777787778775555550587777777777777780000000077877777ccccc77c9797999999979999000000000000000000000000
+c0660c0000000000c0cccc0c78877777777778875505055587777877788877780000000077877787cc77c77c9979977999777999000000000000000000000000
+c0660c0000000000c001100c77777877777777770555555587788777777787780000000077787777cc77cccc9797977999777999000000000000000000000000
 7000070000000000c066660c77777777777777770555005587777777777777780000000077777777cc77cccc9999977999777999000000000000000000000000
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000000000000000000000070000000000000007000000000000000000000000000070000000000000000000000000000000000000000000000000000
