@@ -25,6 +25,7 @@ function _init()
     ship.s = 0
     ship.sx = 0
     ship.sy = 0
+    ship.ac = 0
     ship.crashed = 0
     load_level(1,false)
     init_background()
@@ -93,7 +94,7 @@ function _draw()
     if level.number != 0 then
         draw_map()
         foreach(bullets, draw_object)
-        draw_object(ship)
+        draw_ship()
         if level.fail != 0 then
             draw_restart()
         end
@@ -107,6 +108,22 @@ end
 --o.s is the sprite of the object
 function draw_object(o)
     spr(o.s,o.x - camx,o.y+9-camy)
+end
+function draw_ship()
+    if ship.ac >= 7 then --two frames of squash
+        sspr(0,0,6,8,ship.x - camx,ship.y+9-camy,6,6)
+        ship.h = 6 --update hitbox
+    elseif ship.ac < 5 and ship.ac > 0 then --four frames of stretch
+        sspr(0,0,6,8,ship.x - camx,ship.y+9-camy,6,10)
+        ship.h = 10
+    else --normal sprite for 2 frames in the middle as a bridge, and 
+        sspr(0,0,6,8,ship.x - camx,ship.y+9-camy,6,8)
+        ship.h = 8
+    end
+    if ship.ac > 0 then --reset animation counter
+        ship.ac -= 1 * (30/fps) --should be fps agnostic, untested on values other than 30
+    end
+    
 end
 --draw map relative to the camera position
 --the first 8 pixels on the top of the screen are for the ui
@@ -327,15 +344,17 @@ function update_ship()
             level.ammo[3] -= 1
             y = -80
             spawn_bullet(ship)
+            ship.ac = 8
         end
     end
     update_speed_move(ship, x, y)
     ship.sx = ship.sx * (1-(0.2/fps)) --drag
+    ship.sx = max(min(ship.sx,4),-4)  --control ludicrous speeds
 end
 --s is the ship object that spawns the bullet
 function spawn_bullet(s)
     local b = {}     
-    b.h = 4
+    b.h = 2
     b.w = 4
     b.s = 1
     b.x = s.x + (s.w/2) - (b.w/2)
