@@ -7,6 +7,7 @@ shotspeed = 3
 gravity = 4
 fps = 30
 --global variables
+total_levels = 1
 ship = {} 
 level = {}
 bullets = {}
@@ -52,7 +53,7 @@ function build_level(lvlnum,startx,starty,endx,endy,lgravity,shipstart,ammo,mess
     level.w = level.endx - level.startx + 1
     level.h = level.endy - level.starty + 1
     level.ammo = {ammo[1],ammo[2],ammo[2]}
-    level.fail = 0
+    level.state = 0
     --init ship
     ship.crashed = 0
     ship.x = 8*(shipstart[1]-level.startx)
@@ -95,8 +96,8 @@ function _draw()
         draw_map()
         foreach(bullets, draw_object)
         draw_ship()
-        if level.fail != 0 then
-            draw_restart()
+        if level.state != 0 then
+            draw_message()
         end
         draw_header()
     else
@@ -110,13 +111,13 @@ function draw_object(o)
     spr(o.s,o.x - camx,o.y+9-camy)
 end
 function draw_ship()
-    if ship.ac >= 7 then --two frames of squash
+    if ship.ac >= 5 then --two frames of squash
         sspr(0,0,6,8,ship.x - camx,ship.y+9-camy,6,6)
         ship.h = 6 --update hitbox
-    elseif ship.ac < 5 and ship.ac > 0 then --four frames of stretch
+    elseif ship.ac < 4 and ship.ac > 0 then --four frames of stretch
         sspr(0,0,6,8,ship.x - camx,ship.y+9-camy,6,10)
         ship.h = 10
-    else --normal sprite for 2 frames in the middle as a bridge, and 
+    else --normal sprite in the middle as a bridge, rest of situations
         sspr(0,0,6,8,ship.x - camx,ship.y+9-camy,6,8)
         ship.h = 8
     end
@@ -214,16 +215,24 @@ function draw_title()
     print("a game by uvehj",2,116,0)
     print("github.com/uvehj/gun-lander",2,122,0)
 end
---draw restart message
-function draw_restart()
+--draw restart/next level message
+function draw_message()
     rectfill(22,60,107,78,7)
     rect(22,60,107,78,8)
-    if level.fail == 2 then
+    if level.state == 2 then
         print("don't hit friendlies!",24,62,8)
-    else
+    elseif level.state == 1 then
         print("you crashed!",42,62,8)
+    elseif level.state == 3 then
+        print("some enemies remain",24,62,8)
+    elseif level.state == -1 then
+        print("nice landing",42,62,8)
     end
-    print("press \151 to restart",28,72,8)
+    if level.state > 0 then --fail states
+        print("press \151 to restart",28,72,8)
+    else                    --win states
+        print("\151 start next level",28,72,8)
+    end
 end
 --header with counters
 function draw_header()
@@ -256,24 +265,32 @@ end
 ------------------
 function _update()
     if level.number != 0 then
-        if ship.crashed == 0 then
+        if level.state == 0 then
             if debug == true then
                 update_ship_debug()
             else
                 update_ship()
             end
-        update_camera()
         update_bullets()
         end
         check_end()
     end
+    update_camera()
 end
 function check_end()
     --level is failed, button press will restart it
-    if level.fail != 0 then
+    if level.state != 0 then
         if (btnp(5)) then
             restore_level()
-            load_level(level.number,true)
+            if level.state > 0 then
+                load_level(level.number,true)
+            elseif level.state < 0 then
+                if level.number < total_levels then
+                    load_level(level.number+1,false)
+                else
+                    load_level(0,false)
+                end
+            end
         end
     else
         --check if the ship has landed on the landing pad or not
@@ -281,7 +298,14 @@ function check_end()
             local contact_points = {{((ship.x+2)/8)+level.startx,((ship.y+ship.h-1)/8)+level.starty},{((ship.x+ship.w-3)/8)+level.startx,((ship.y+ship.h-1)/8)+level.starty}}
             for p in all(contact_points) do
                 if fget(mget(p[1],p[2]),4) != true then
-                    level.fail = max(level.fail, 1)
+                    level.state = max(level.state, 1)
+                end
+            end
+            if level.state == 0 then
+                if #level.enemylist !=0 and level.numenemy != 0 then 
+                    level.state = 3
+                else
+                    level.state = -1
                 end
             end
         end
@@ -344,7 +368,7 @@ function update_ship()
             level.ammo[3] -= 1
             y = -80
             spawn_bullet(ship)
-            ship.ac = 8
+            ship.ac = 6
         end
     end
     update_speed_move(ship, x, y)
@@ -370,7 +394,7 @@ function update_bullets()
         update_speed_move(b, 0, gravity)
         if b.crashed != 0 then
             if b.crashed == 2 then --destroyed friendly building
-                level.fail = 2
+                level.state = 2
             end
             del(bullets,b)
         end
