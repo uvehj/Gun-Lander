@@ -1,0 +1,76 @@
+# Levels
+
+## Reserved level numbers
+
+- 0 is the title menu
+- -1 is the credits menu
+
+## Attributes
+
+- **number**
+  - int,  the id number of the level
+  - Ordered according to appearance in the game
+  - Numbers 0 and -1 are reserved
+- **startx**
+  - int
+  - Start x axis of tile in the tile map, taken directly as displayed in the map screen
+- **starty**
+  - int
+  - Same as startx for the y axis
+- **endx**
+  - int
+  - Same as starx, but the end boundary
+- **endy**
+  - int
+  - Same as endx, but for the y axis
+- **gravity**
+  - float
+  - Gravity strength in the level
+  - Based around the hardcoded global gravity value "4"
+    - Gravity 0 : gravity/2
+    - Gravity 1 : gravity*1.5
+    - Gravity 2 : gravity
+- messages
+  - One dimensional table of messages displayed within the level
+    - {string, int, int}
+      - [1] string with the message to be displayed
+      - [2] x axis of the tile where the message starts
+      - [3] y axis
+- **w**
+  - int
+  - Level width
+  - Calculated automatically on level creation
+- **h**
+  - int
+  - Level height
+  - Calculated automatically on level creation
+- **ammo**
+  - int
+  - One dimensional table with ammo info
+  - {bool, int}
+    - [1] bool, is ammo limited in this level
+    - [2] int, the number of max bullets
+- **state**
+  - int
+  - Values indicate level state
+    - 0: Game in progress
+    - Positive values are fail states
+      - 1: Crash
+      - 2: Friendly hit
+      - 3: Enemies remaining after landing
+    - Negative values are win states
+      - -1: Successful landing
+- **enemylist**
+  - One dimensional table containing info about the enemies
+    - {int,int,int}
+      - [1] x position of the enemy
+      - [2] y position of the enemy
+      - [3] sprite number used by the enemy
+  - Created automatically on level creation
+  - Used automatically on level restoration
+- **numenemy**
+  - int
+  - Number of remaining enemies in the level
+  - Calculated automatically on level creation
+  - Value is modified in real time during gameplay
+  - Restored automatically on level restoration
