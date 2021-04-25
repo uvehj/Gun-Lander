@@ -6,6 +6,7 @@ debug = false
 shotspeed = 3
 gravity = 4
 fps = 30
+reset_progress = 0
 --global variables
 total_levels = 2
 unlocked_levels = 1
@@ -26,6 +27,10 @@ function _init()
     cls()
     cartdata("uvehj_gun_lander")
     unlocked_levels = max(unlocked_levels, dget(0))
+    if reset_progress != 0 then
+        unlocked_levels = 1
+        dset(0,unlocked_levels)
+    end
     ship.h = 8
     ship.w = 6
     ship.s = 0
