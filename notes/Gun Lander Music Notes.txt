@@ -1,0 +1,44 @@
+sounds bank
+-----------
+00 - gameplay - kick + bassline A
+01 - gameplay - hat
+02 - gameplay - arp
+03 - gameplay - arp_fx
+...
+08 - credits - melody A
+09 - credits - melody B
+10 - credits - melody C
+11 - credits - melody D
+12 - credits - bass A
+13 - credits - bass B
+14 - credits - bass C
+15 - credits - bass D
+16 - credits - hat + snare
+17 - credits - octave A
+18 - credits - octave B
+19 - credits - octave C
+20 - credits - octave D
+21 - credits - growl + riser
+...
+32 - main menu - arp
+33 - main menu - bassline A
+34 - main menu - bassline B
+35 - main menu - chimes + kick
+36 - main menu - pulsing noise
+...
+55 - fx - thrusters 2
+56 - fx - menu beep
+57 - fx - nice landing!
+58 - fx - fail
+59 - fx - thrusters (unused)
+60 - fx - laser
+61 - fx - ship crash
+62 - fx - short swell (unused)
+63 - fx - enemy destroyed
+
+patterns bank
+--------------
+00-15 - gameplay theme
+16-23 - credits theme
+24-30 - main menu theme
+30-63 - empty
