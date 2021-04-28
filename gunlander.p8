@@ -275,7 +275,7 @@ function draw_title()
     print("a game by uvehj",2,110,0)
     print("github.com/uvehj/gun-lander",2,116,0)
     --ian wip
-    print("music/sfx by duneguy :)",2,122,0)
+    print("sounds by duneguy :)",2,122,0)
     if menustate == 1 then
         rectfill(30,86,94,94,8)
         rectfill(31,87,93,93,7)
