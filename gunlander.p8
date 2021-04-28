@@ -273,12 +273,13 @@ function draw_title()
     spr(72, 30, 62, 8, 2)
     --credits and site
     print("a game by uvehj",2,110,0)
-    print("github.com/uvehj/gun-lander",2,116,0)
     --ian wip
-    print("sounds by duneguy :)",2,122,0)
+    print("sounds by duneguy :)",2,116,0)
+    print("github.com/uvehj/gun-lander",20,122,0)
     if menustate == 1 then
-        rectfill(30,86,94,94,8)
-        rectfill(31,87,93,93,7)
+        --rectfill(30,86,94,94,8)
+        --rectfill(31,87,93,93,7)
+        rectfill(30,86,94,94,7)
         titlemessage = "start lvl\139"..tostr(menuselectlevel).."\145"
         print(titlemessage,64-((#titlemessage+3)*4/2),88,8)
     end
@@ -608,9 +609,9 @@ end
 
 --ian wip
 function gameplaymusic() --play gameplay music, if not already playing
- if stat(24)<0 or stat(24)>15 then
-  music(0,0,7) --play gameplay music, reserve ch.0-2
- end
+    if stat(24)<0 or stat(24)>15 then
+        music(0,0,7) --play gameplay music, reserve ch.0-2
+    end
 end
 
 --level info--
