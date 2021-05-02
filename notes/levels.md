@@ -23,6 +23,11 @@
 - **endy**
   - int
   - Same as endx, but for the y axis
+- camoffset
+  - One dimensional table with values to offset the camera (in tiles)
+    - {int. int}
+      - [1] x
+      - [2] y
 - **gravity**
   - float
   - Gravity strength in the level
@@ -50,6 +55,7 @@
   - {bool, int}
     - [1] bool, is ammo limited in this level
     - [2] int, the number of max bullets
+    - [3] int, current ammo
 - **state**
   - int
   - Values indicate level state
