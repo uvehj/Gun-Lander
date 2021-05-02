@@ -173,15 +173,15 @@ end
 function draw_gauges()
     local gauge_value
     if level.ammo[1] == true then
-        gauge_value = flr((level.ammo[3]/level.ammo[2])*ship.ho)
-        if gauge_value >= 1 then
+        gauge_value = ((level.ammo[3]/level.ammo[2])*ship.ho)
+        if gauge_value > 0 then
             gauge_value -= 1
             rectfill(ship.x+ship.w+1-camx,ship.y+9-camy,ship.x+ship.w+1-camx,ship.y+gauge_value+9-camy,12)
         end
     end
     if #level.enemylist > 0 then
-        gauge_value = flr((level.numenemy/#level.enemylist)*ship.ho)
-        if gauge_value >= 1 then
+        gauge_value = ((level.numenemy/#level.enemylist)*ship.ho)
+        if gauge_value > 0 then
             gauge_value -= 1
             rectfill(ship.x-2-camx,ship.y+9-camy,ship.x-2-camx,ship.y+gauge_value+9-camy,9)
         end
