@@ -323,6 +323,10 @@ function draw_message()
         print("some enemies remain",24,62,8)
     elseif level.state == 4 then
         print("lost forever in space",24,62,8)
+    elseif level.state == 5 then
+        print("too fast to land",24,62,8)
+    elseif level.state == 6 then
+        print("missed landing pad",24,62,8)
     elseif level.state == -1 then
         print("nice landing!",42,62,8)
     end
@@ -425,16 +429,35 @@ function check_end()
     else
         --check if the ship has landed on the landing pad or not
         if ship.crashed != 0 then
-            local contact_points = {{((ship.x+2)/8)+level.startx,((ship.y+ship.h-1)/8)+level.starty},{((ship.x+ship.w-3)/8)+level.startx,((ship.y+ship.h-1)/8)+level.starty}}
+            local contact_points = {{flr(((ship.x+2)/8)+level.startx),flr(((ship.y+ship.h-1)/8)+level.starty)},{flr(((ship.x+ship.w-3)/8)+level.startx),flr(((ship.y+ship.h-1)/8)+level.starty)}}
+            local top_points = {{flr(((ship.x)/8)+level.startx),flr(((ship.y)/8)+level.starty)},{flr(((ship.x+ship.w-1)/8)+level.startx),flr((ship.y/8)+level.starty)}}
             for p in all(contact_points) do
                 if fget(mget(p[1],p[2]),4) != true then
-                    level.state = max(level.state, 1)
-                    --ian wip
-                    sfx(61,3) --play ship crash sfx on ch.3
+                    --it is a crash if: lands on a building, lands too hard or lands sideways (hits a wall with the side of the ship)
+                    if fget(mget(p[1],p[2]),1) == true or fget(mget(p[1],p[2]),2) == true or ship.sy >= crash_speed then
+                        level.state = max(level.state, 1)
+                        sfx(61,3) --play ship crash sfx on ch.3
+                    else
+                        for p2 in all(top_points) do
+                            --if any of the top points is making contact, it is a sideways crash
+                            if fget(mget(p[1],p[2]),0) != true then
+                                level.state = max(level.state, 1)
+                                sfx(61,3) --play ship crash sfx on ch.3
+                            end
+                        end
+                    end
+                    --if it is not a crash but it's not on the landing pad, it's a game over
+                    if level.state == 0 then
+                        level.state = 6
+                        sfx(58,3) --play fail sfx on ch.3
+                    end
                 end
             end
             if level.state == 0 then
-                if #level.enemylist !=0 and level.numenemy != 0 then
+                if ship.sy >= crash_speed then
+                    level.state = 5
+                    sfx(61,3) --play ship crash sfx on ch.3
+                elseif #level.enemylist !=0 and level.numenemy != 0 then
                     level.state = 3
                     --ian wip
                     sfx(58,3) --play fail sfx on ch.3

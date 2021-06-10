@@ -64,6 +64,9 @@
       - 1: Crash
       - 2: Friendly hit
       - 3: Enemies remaining after landing
+      - 4: Went too far out into space
+      - 5: Landed in the launchpad too hard
+      - 6: Landed softly, but outside the launchpad
     - Negative values are win states
       - -1: Successful landing
 - **enemylist**
