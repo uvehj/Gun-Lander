@@ -690,9 +690,20 @@ function is_wall_collision(o)
     return 0
 end
 
-function gameplaymusic(level, restartMusic) --play gameplay music, if not already playing
-    if stat(24)<0 or stat(24)>15 then
-        music(0,0,7) --play gameplay music, reserve ch.0-2
+function gameplaymusic(l, restart, restartMusic) --play gameplay music, if not already playing
+    if(l > 0) then
+        currentzone = nil
+        for key,value in pairs(zones) 
+        do
+            if value.startLevel <= l then
+                currentzone=value
+            end
+        end
+        if currentzone ~= nil then
+            if( restart == false and (restartMusic or l == currentzone.startLevel)) then
+                music(currentzone.theme,0,7) --play gameplay music, reserve ch.0-2
+            end
+        end
     end
 end
 
@@ -700,11 +711,11 @@ end
 --build_level(lvlnum,startx,starty,endx,endy,camoffset{x,y},lgravity,shipstart{x,y},ammo{is limited,number},restart,messages)
 --l is level number, r is level restart (true of false), restartMusic forces the music to start from the beginning
 --start and end coordinates are as displayed by the map tab
-function load_level(l,restart, restartMusic)
+function load_level(l, restart, restartMusic)
     --level -
     if l > 0 then --gameplay beep and song
         sfx(56,3) --play menu beep sfx on ch.3
-        gameplaymusic(l, restartMusic) --call gameplaymusic function
+        gameplaymusic(l, restart, restartMusic) --call gameplaymusic function
     elseif l == 0 then
         music(24,0,7) --play main menu music, reserve ch.0-2
     elseif l == -1 then
