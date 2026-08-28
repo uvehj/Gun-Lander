@@ -325,7 +325,6 @@ function draw_title()
     spr(72, 30, 62, 8, 2)
     --credits and site
     print("a game by uvehj",2,110,0)
-    --ian wip
     print("sounds by ian edward",2,116,0)
     print("github.com/uvehj/gun-lander",20,122,0)
     if menustate == 1 then
@@ -725,7 +724,7 @@ function load_level(l, restart, restartMusic)
     if l == 0 then
         build_level(l,0,0,15,14,{0,0},1,{0,0},{false,0},{{"houston, we have a gun",2,8.2}})
     elseif l == -1 then
-        build_level(l,0,0,15,14,{0,0},1,{0,0},{false,0},{{"thanks for playing!",3,6}})
+        build_level(l,0,0,15,14,{0,0},1,{0,0},{false,0},{{"thanks for playing!",3,3}, {"game design, programing",2,7}, {"& visuals",10,8}, {"uvehj",6,9}, {"sounds & music",4,11}, {"ian edward",5,12}})
     elseif l == 1 then
         build_level(l,0,0,10,10,{0,0},0,{2,1},{false,0},{{"land here",5,8}})
     elseif l == 2 then
